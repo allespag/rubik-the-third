@@ -3,7 +3,12 @@ from dataclasses import dataclass, field
 
 from rubik.constants import CORNER_ORIENTATION_COUNT, EDGE_ORIENTATION_COUNT
 from rubik.cubie import Corner, CornerCubie, Edge, EdgeCubie
-from rubik.move import IS_REPLACED_BY_CORNER_MAP, IS_REPLACED_BY_EDGE_MAP, Move
+from rubik.move import (
+    IS_REPLACED_BY_CORNER_MAP,
+    IS_REPLACED_BY_EDGE_MAP,
+    Move,
+    Sequence,
+)
 
 
 @dataclass(slots=True)
@@ -43,6 +48,10 @@ class Cube:
                 self.corner_cubies[index].orientation = (
                     cubie.orientation + corner_cubie.orientation
                 ) % CORNER_ORIENTATION_COUNT
+
+    def apply_sequence(self, sequence: Sequence) -> None:
+        for move in sequence:
+            self.apply(move)
 
 
 SOLVED_CUBE = Cube()

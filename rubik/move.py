@@ -1,31 +1,11 @@
 from __future__ import annotations
 
+import random
 from dataclasses import dataclass
 
 from ordered_set import OrderedSet
 
 from rubik.cubie import Corner, CornerCubie, Edge, EdgeCubie, Face
-
-MOVE_MAP = {
-    "U": (Face.U, 1),
-    "R": (Face.R, 1),
-    "F": (Face.F, 1),
-    "D": (Face.D, 1),
-    "L": (Face.L, 1),
-    "B": (Face.B, 1),
-    "U2": (Face.U, 2),
-    "R2": (Face.R, 2),
-    "F2": (Face.F, 2),
-    "D2": (Face.D, 2),
-    "L2": (Face.L, 2),
-    "B2": (Face.B, 2),
-    "U'": (Face.U, 3),
-    "R'": (Face.R, 3),
-    "F'": (Face.F, 3),
-    "D'": (Face.D, 3),
-    "L'": (Face.L, 3),
-    "B'": (Face.B, 3),
-}
 
 IS_REPLACED_BY_EDGE_MAP = {
     Face.U: [
@@ -188,14 +168,44 @@ class Move:
     face: Face
     n: int
 
+    def __str__(self) -> str:
+        modifiers = ["", "2", "'"]
+        return f"{self.face.name}{modifiers[self.n - 1]}"
+
     @classmethod
     def from_string(cls, move_as_string: str) -> Move:
         try:
-            face, n = MOVE_MAP[move_as_string]
-            return cls(face, n)
+            return MOVE_MAP[move_as_string]
         except KeyError:
             raise NotAMoveError(f"'{move_as_string}' is not a move.")
 
+    @classmethod
+    def from_random(cls) -> Move:
+        return random.choice(list(MOVE_MAP.values()))
+
+
+MOVE_MAP = {
+    "U": Move(Face.U, 1),
+    "R": Move(Face.R, 1),
+    "F": Move(Face.F, 1),
+    "D": Move(Face.D, 1),
+    "L": Move(Face.L, 1),
+    "B": Move(Face.B, 1),
+    "U2": Move(Face.U, 2),
+    "R2": Move(Face.R, 2),
+    "F2": Move(Face.F, 2),
+    "D2": Move(Face.D, 2),
+    "L2": Move(Face.L, 2),
+    "B2": Move(Face.B, 2),
+    "U'": Move(Face.U, 3),
+    "R'": Move(Face.R, 3),
+    "F'": Move(Face.F, 3),
+    "D'": Move(Face.D, 3),
+    "L'": Move(Face.L, 3),
+    "B'": Move(Face.B, 3),
+}
+
+REVERSE_MOVE_MAP = {move: Move(move.face, 4 - move.n) for move in MOVE_MAP.values()}
 
 Sequence = list[Move]
 Group = OrderedSet[Move]
@@ -206,6 +216,14 @@ def create_sequence(sequence_as_string: str) -> Sequence:
         Move.from_string(move_as_string)
         for move_as_string in sequence_as_string.split(" ")
     ]
+
+
+def create_reversed_sequence(sequence: Sequence) -> Sequence:
+    return [REVERSE_MOVE_MAP[move] for move in sequence][::-1]
+
+
+def create_random_sequence(length: int = 100) -> Sequence:
+    return [Move.from_random() for _ in range(length)]
 
 
 def create_group(group_as_string: str) -> Group:
