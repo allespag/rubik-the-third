@@ -1,27 +1,19 @@
-import copy
-
 from rubik.cube import Cube
-from rubik.cubie import Corner, CornerCubie, Face
-from rubik.move import Move
-
-
-def test_apply_simple_moves() -> None:
-    cube = Cube()
-    simple_moves = [Move.from_string(face.name) for face in Face]
-
-    for move in simple_moves:
-        print(move)
-        for _ in range(4):
-            cube.apply(move)
-        assert cube.solved
+from rubik.move import Move, create_random_sequence
 
 
 def main() -> None:
     cube = Cube()
-    move = Move.from_string("U")
-
+    move = Move.from_string("R")
     cube.apply(move)
-    print(cube.edge_cubies)
+
+    seed = cube.get_corner_cubies_orientation_coord()
+
+    other = Cube()
+    other.set_corner_cubies_orientation_coord(seed)
+
+    for cubie in other.corner_cubies:
+        print(cubie.orientation)
 
 
 if __name__ == "__main__":
