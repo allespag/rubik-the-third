@@ -183,6 +183,9 @@ class Move:
     def from_random(cls) -> Move:
         return random.choice(list(MOVE_MAP.values()))
 
+    def get_reverse(self) -> Move:
+        return REVERSE_MOVE_MAP[self]
+
 
 MOVE_MAP = {
     "U": Move(Face.U, 1),

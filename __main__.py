@@ -1,19 +1,9 @@
-from rubik.cube import Cube
-from rubik.move import Move, create_random_sequence
+from rubik.pruning_table import cubies_orientation_pruning
 
 
 def main() -> None:
-    cube = Cube()
-    move = Move.from_string("R")
-    cube.apply(move)
-
-    seed = cube.get_corner_cubies_orientation_coord()
-
-    other = Cube()
-    other.set_corner_cubies_orientation_coord(seed)
-
-    for cubie in other.corner_cubies:
-        print(cubie.orientation)
+    # cubies_orientation_pruning.populate_bfs()
+    cubies_orientation_pruning.populate()
 
 
 if __name__ == "__main__":

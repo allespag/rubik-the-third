@@ -6,7 +6,6 @@ from dataclasses import dataclass, field
 from rubik.constants import (
     CORNER_COUNT,
     CORNER_ORIENTATION_COUNT,
-    CORNER_ORIENTATION_MAX,
     EDGE_COUNT,
     EDGE_ORIENTATION_COUNT,
 )
