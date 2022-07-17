@@ -3,7 +3,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable
 
-from rubik.constants import CORNER_ORIENTATION_MAX, EDGE_ORIENTATION_MAX, MOVE_COUNT
+from rubik.constants import (
+    CORNER_ORIENTATION_MAX,
+    EDGE_ORIENTATION_MAX,
+    MOVE_COUNT,
+    UD_SLICE_PERMUTATION_MAX,
+)
 from rubik.cube import Cube
 from rubik.move import MOVE_MAP
 
@@ -50,15 +55,22 @@ class MoveTable:
 
 
 edges_ori_move_table = MoveTable(
-    "edges_orientation.move",
+    "edges_orientation.pickle",
     EDGE_ORIENTATION_MAX,
     Cube.get_edge_cubies_orientation_coord,
     Cube.set_edge_cubies_orientation_coord,
 )
 
 corners_ori_move_table = MoveTable(
-    "corners_orientation.move",
+    "corners_orientation.pickle",
     CORNER_ORIENTATION_MAX,
     Cube.get_corner_cubies_orientation_coord,
     Cube.set_corner_cubies_orientation_coord,
+)
+
+UD_slice_perm_move_table = MoveTable(
+    "UD_slice_permutation.pickle",
+    UD_SLICE_PERMUTATION_MAX,
+    Cube.get_UD_slice_permutation_coord,
+    Cube.set_edge_cubies_orientation_coord,
 )

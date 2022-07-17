@@ -16,6 +16,7 @@ from rubik.move import (
     Move,
     Sequence,
 )
+from rubik.utils import binomial
 
 
 @dataclass(slots=True)
@@ -41,8 +42,8 @@ class Cube:
             and self.corner_cubies == SOLVED_CUBE.corner_cubies
         )
 
-    # TODO: check if you can replace copy.deepcopy by something faster
-    def apply(self, move: Move) -> None:
+    # This is the old apply function, remove it when you want
+    def apply_slow__OLD(self, move: Move) -> None:
         new_edge_cubies = IS_REPLACED_BY_EDGE_MAP[move.face]
         new_corner_cubies = IS_REPLACED_BY_CORNER_MAP[move.face]
 
@@ -64,6 +65,31 @@ class Cube:
                     cubie.orientation + corner_cubie.orientation
                 ) % CORNER_ORIENTATION_COUNT
 
+    def apply(self, move: Move) -> None:
+        for _ in range(move.n):
+            new_edge_cubies: list[EdgeCubie] = []
+            for edge_cubie in IS_REPLACED_BY_EDGE_MAP[move.face]:
+                cubie = self.edge_cubies[edge_cubie.edge]
+
+                edge = cubie.edge
+                orientation = (
+                    cubie.orientation + edge_cubie.orientation
+                ) % EDGE_ORIENTATION_COUNT
+                new_edge_cubies.append(EdgeCubie(edge, orientation))
+
+            new_corner_cubies: list[CornerCubie] = []
+            for corner_cubie in IS_REPLACED_BY_CORNER_MAP[move.face]:
+                cubie = self.corner_cubies[corner_cubie.corner]
+
+                corner = cubie.corner
+                orientation = (
+                    cubie.orientation + corner_cubie.orientation
+                ) % CORNER_ORIENTATION_COUNT
+                new_corner_cubies.append(CornerCubie(corner, orientation))
+
+            self.edge_cubies = new_edge_cubies
+            self.corner_cubies = new_corner_cubies
+
     def apply_sequence(self, sequence: Sequence) -> None:
         for move in sequence:
             self.apply(move)
@@ -80,6 +106,18 @@ class Cube:
             * CORNER_ORIENTATION_COUNT ** (CORNER_COUNT - 2 - index)
             for index, corner_cubie in enumerate(self.corner_cubies[:-1])
         )
+
+    def get_UD_slice_permutation_coord(self) -> int:
+        coord = 0
+        k = -1
+
+        for n, cubie in enumerate(self.edge_cubies):
+            if cubie.edge in [Edge.FR, Edge.FL, Edge.BL, Edge.BR]:
+                k += 1
+            elif k != -1:
+                coord += binomial(n, k)
+
+        return coord
 
     def set_edge_cubies_orientation_coord(self, coord: int) -> None:
         sum_ = 0
@@ -106,6 +144,49 @@ class Cube:
         self.corner_cubies[-1].orientation = (
             CORNER_ORIENTATION_COUNT - (sum_ % CORNER_ORIENTATION_COUNT)
         ) % CORNER_ORIENTATION_COUNT
+
+    def set_UD_slice_permutation_coord(self, coord: int) -> None:
+        remaining_not_UD_slice_edges = [
+            Edge.UR,
+            Edge.UF,
+            Edge.UL,
+            Edge.UB,
+            Edge.DR,
+            Edge.DF,
+            Edge.DL,
+            Edge.DB,
+        ]
+        remaining_UD_slice_edges = [
+            Edge.FR,
+            Edge.BL,
+            Edge.FL,
+            Edge.BR,
+        ]
+        n = EDGE_COUNT - 1
+        k = 3
+
+        while coord:
+            current = binomial(n, k)
+
+            if current > coord:
+                edge = remaining_UD_slice_edges.pop()
+                k -= 1
+            else:
+                edge = remaining_not_UD_slice_edges.pop()
+                coord -= current
+
+            self.edge_cubies[n].edge = edge
+            n -= 1
+
+        while n >= 0:
+            if k >= 0:
+                edge = remaining_UD_slice_edges.pop()
+                k -= 1
+            else:
+                edge = remaining_not_UD_slice_edges.pop()
+
+            self.edge_cubies[n].edge = edge
+            n -= 1
 
 
 SOLVED_CUBE = Cube()

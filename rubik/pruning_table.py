@@ -1,11 +1,16 @@
 import pickle
 from dataclasses import dataclass, field
-from operator import mod
 from pathlib import Path
 from queue import Queue
 
 from rubik.constants import MOVE_COUNT
-from rubik.move_table import MoveTable, corners_ori_move_table, edges_ori_move_table
+from rubik.cube import Cube
+from rubik.move_table import (
+    MoveTable,
+    UD_slice_perm_move_table,
+    corners_ori_move_table,
+    edges_ori_move_table,
+)
 
 PRUNING_TABLE_DIRECTORY = "rubik/pruning_tables"
 
@@ -47,7 +52,6 @@ class PruningTable:
         while not queue.empty():
             i, j, depth = queue.get()
             table[i][j] = depth
-            print(f"added: {i} {j} @ {depth}")
 
             for move_index in range(MOVE_COUNT):
                 x = self.move_table_1.table[i][move_index]
@@ -57,7 +61,24 @@ class PruningTable:
                     visited.add((x, y))
                     queue.put((x, y, depth + 1))
 
+        with open(self.path, "wb") as f:
+            pickle.dump(table, f)
 
-cubies_orientation_pruning = PruningTable(
-    "cubies_orientation.pruning", edges_ori_move_table, corners_ori_move_table
+    def compute(self, cube: Cube) -> int:
+        x = self.move_table_1.getter(cube)
+        y = self.move_table_2.getter(cube)
+
+        return self.table[x][y]
+
+
+cubies_ori_pruning = PruningTable(
+    "cubies_orientation.pickle",
+    edges_ori_move_table,
+    corners_ori_move_table,
+)
+
+edges_ori_UD_slice_perm = PruningTable(
+    "edges_orientation_UD_slice_permutation.pickle",
+    edges_ori_move_table,
+    UD_slice_perm_move_table,
 )

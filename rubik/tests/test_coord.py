@@ -1,4 +1,5 @@
 from rubik.cube import Cube
+from rubik.cubie import Edge
 from rubik.move import create_random_sequence
 
 
@@ -28,3 +29,29 @@ def test_corner_cubies_orientation_coord() -> None:
             cube.corner_cubies, other.corner_cubies
         ):
             assert corner_cubie_1.orientation == corner_cubie_2.orientation
+
+
+def test_UD_slice_permutation_coord() -> None:
+    UD_slice_edges = [
+        Edge.FR,
+        Edge.BL,
+        Edge.FL,
+        Edge.BR,
+    ]
+
+    for _ in range(10):
+        sequence = create_random_sequence()
+        cube = Cube.from_sequence(sequence)
+        coord = cube.get_UD_slice_permutation_coord()
+
+        other = Cube()
+        other.set_UD_slice_permutation_coord(coord)
+
+        for edge_cubie_1, edge_cubie_2 in zip(cube.edge_cubies, other.edge_cubies):
+            assert (
+                edge_cubie_1.edge in UD_slice_edges
+                and edge_cubie_2.edge in UD_slice_edges
+            ) or (
+                edge_cubie_1.edge not in UD_slice_edges
+                and edge_cubie_2.edge not in UD_slice_edges
+            )
