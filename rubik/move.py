@@ -236,3 +236,7 @@ def create_group(group_as_string: str) -> Group:
             for move_as_string in group_as_string.split(" ")
         ]
     )
+
+
+G0 = create_group(" ".join(move_name for move_name in MOVE_MAP))
+G1 = create_group("U U' U2 D D' D2 R2 L2 F2 B2")

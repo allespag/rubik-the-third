@@ -20,7 +20,8 @@ class PruningTable:
     filename: str
     move_table_1: MoveTable
     move_table_2: MoveTable
-    table: list[list[int]] = field(init=False, default_factory=list)
+    table: list[list[int]] = field(init=False, default_factory=list, repr=False)
+    loaded: bool = field(init=False, default=False)
 
     def __post_init__(self) -> None:
         Path(PRUNING_TABLE_DIRECTORY).mkdir(parents=True, exist_ok=True)
@@ -32,12 +33,14 @@ class PruningTable:
         return f"{PRUNING_TABLE_DIRECTORY}/{self.filename}"
 
     def load(self) -> None:
-        try:
-            with open(self.path, "rb") as f:
-                self.table = pickle.load(f)
-        except:
-            self.populate()
-            self.load()
+        if not self.loaded:
+            try:
+                with open(self.path, "rb") as f:
+                    self.table = pickle.load(f)
+                self.loaded = True
+            except:
+                self.populate()
+                self.load()
 
     def populate(self) -> None:
         table = [
@@ -77,7 +80,7 @@ cubies_ori_pruning = PruningTable(
     corners_ori_move_table,
 )
 
-edges_ori_UD_slice_perm = PruningTable(
+edges_ori_UD_slice_perm_pruning = PruningTable(
     "edges_orientation_UD_slice_permutation.pickle",
     edges_ori_move_table,
     UD_slice_perm_move_table,

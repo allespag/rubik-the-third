@@ -21,7 +21,8 @@ class MoveTable:
     size: int
     getter: Callable[[Cube], int]
     setter: Callable[[Cube, int], None]
-    table: list[list[int]] = field(init=False, default_factory=list)
+    table: list[list[int]] = field(init=False, default_factory=list, repr=False)
+    loaded: bool = field(init=False, default=False)
 
     def __post_init__(self) -> None:
         Path(MOVE_TABLE_DIRECTORY).mkdir(parents=True, exist_ok=True)
@@ -31,12 +32,14 @@ class MoveTable:
         return f"{MOVE_TABLE_DIRECTORY}/{self.filename}"
 
     def load(self) -> None:
-        try:
-            with open(self.path, "rb") as f:
-                self.table = pickle.load(f)
-        except:
-            self.populate()
-            self.load()
+        if not self.loaded:
+            try:
+                with open(self.path, "rb") as f:
+                    self.table = pickle.load(f)
+                self.loaded = True
+            except:
+                self.populate()
+                self.load()
 
     def populate(self) -> None:
         cube = Cube()
