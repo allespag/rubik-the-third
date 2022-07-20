@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import random
+from collections import OrderedDict
 from dataclasses import dataclass
 
 from ordered_set import OrderedSet
@@ -187,28 +188,32 @@ class Move:
         return REVERSE_MOVE_MAP[self]
 
 
-MOVE_MAP = {
-    "U": Move(Face.U, 1),
-    "R": Move(Face.R, 1),
-    "F": Move(Face.F, 1),
-    "D": Move(Face.D, 1),
-    "L": Move(Face.L, 1),
-    "B": Move(Face.B, 1),
-    "U2": Move(Face.U, 2),
-    "R2": Move(Face.R, 2),
-    "F2": Move(Face.F, 2),
-    "D2": Move(Face.D, 2),
-    "L2": Move(Face.L, 2),
-    "B2": Move(Face.B, 2),
-    "U'": Move(Face.U, 3),
-    "R'": Move(Face.R, 3),
-    "F'": Move(Face.F, 3),
-    "D'": Move(Face.D, 3),
-    "L'": Move(Face.L, 3),
-    "B'": Move(Face.B, 3),
-}
+MOVE_MAP = OrderedDict(
+    {
+        "U": Move(Face.U, 1),
+        "R": Move(Face.R, 1),
+        "F": Move(Face.F, 1),
+        "D": Move(Face.D, 1),
+        "L": Move(Face.L, 1),
+        "B": Move(Face.B, 1),
+        "U2": Move(Face.U, 2),
+        "R2": Move(Face.R, 2),
+        "F2": Move(Face.F, 2),
+        "D2": Move(Face.D, 2),
+        "L2": Move(Face.L, 2),
+        "B2": Move(Face.B, 2),
+        "U'": Move(Face.U, 3),
+        "R'": Move(Face.R, 3),
+        "F'": Move(Face.F, 3),
+        "D'": Move(Face.D, 3),
+        "L'": Move(Face.L, 3),
+        "B'": Move(Face.B, 3),
+    }
+)
 
-REVERSE_MOVE_MAP = {move: Move(move.face, 4 - move.n) for move in MOVE_MAP.values()}
+REVERSE_MOVE_MAP = OrderedDict(
+    {move: Move(move.face, 4 - move.n) for move in MOVE_MAP.values()}
+)
 
 Sequence = list[Move]
 Group = OrderedSet[Move]

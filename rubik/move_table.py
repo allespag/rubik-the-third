@@ -3,6 +3,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable
 
+from alive_progress import alive_bar  # type: ignore
+
 from rubik.constants import (
     CORNER_ORIENTATION_MAX,
     CORNER_PERMUTATION_MAX,
@@ -48,13 +50,21 @@ class MoveTable:
         cube = Cube()
         table = [[-1 for _ in range(MOVE_COUNT)] for _ in range(self.size)]
 
-        for i in range(self.size):
-            self.setter(cube, i)
+        with alive_bar(
+            self.size,
+            title=self.filename,
+            title_length=30,
+            spinner="wait3",
+            spinner_length=25,
+        ) as bar:  # type: ignore
+            for i in range(self.size):
+                self.setter(cube, i)
 
-            for index, move in enumerate(MOVE_MAP.values()):
-                cube.apply(move)
-                table[i][index] = self.getter(cube)
-                cube.apply(move.get_reverse())
+                for index, move in enumerate(MOVE_MAP.values()):
+                    cube.apply(move)
+                    table[i][index] = self.getter(cube)
+                    cube.apply(move.get_reverse())
+                bar()
 
         with open(self.path, "wb") as f:
             pickle.dump(table, f)

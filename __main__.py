@@ -13,10 +13,7 @@ from rubik.solver import Solver
 
 
 def main_test() -> None:
-    not_UD_slice_perm_move_table.populate()
-    not_UD_slice_perm_move_table.load()
-    for elem in not_UD_slice_perm_move_table.table:
-        print(elem)
+    pass
 
 
 def main() -> None:

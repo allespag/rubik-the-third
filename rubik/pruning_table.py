@@ -3,6 +3,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from queue import Queue
 
+from alive_progress import alive_bar  # type: ignore
+
 from rubik.constants import MOVE_COUNT
 from rubik.cube import Cube
 from rubik.move_table import (
@@ -54,18 +56,25 @@ class PruningTable:
         visited: set[tuple[int, int]] = set()
 
         queue.put((0, 0, 0))
+        with alive_bar(
+            self.move_table_1.size * self.move_table_2.size,
+            title=self.filename,
+            title_length=30,
+            spinner="wait3",
+            spinner_length=25,
+        ) as bar:  # type: ignore
+            while not queue.empty():
+                i, j, depth = queue.get()
+                table[i][j] = depth
+                bar()
 
-        while not queue.empty():
-            i, j, depth = queue.get()
-            table[i][j] = depth
+                for move_index in range(MOVE_COUNT):
+                    x = self.move_table_1.table[i][move_index]
+                    y = self.move_table_2.table[j][move_index]
 
-            for move_index in range(MOVE_COUNT):
-                x = self.move_table_1.table[i][move_index]
-                y = self.move_table_2.table[j][move_index]
-
-                if (x, y) not in visited:
-                    visited.add((x, y))
-                    queue.put((x, y, depth + 1))
+                    if (x, y) not in visited:
+                        visited.add((x, y))
+                        queue.put((x, y, depth + 1))
 
         with open(self.path, "wb") as f:
             pickle.dump(table, f)
