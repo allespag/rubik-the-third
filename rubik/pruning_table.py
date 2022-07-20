@@ -56,6 +56,7 @@ class PruningTable:
         visited: set[tuple[int, int]] = set()
 
         queue.put((0, 0, 0))
+        visited.add((0, 0))
         with alive_bar(
             self.move_table_1.size * self.move_table_2.size,
             title=self.filename,

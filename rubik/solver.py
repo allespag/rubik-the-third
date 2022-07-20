@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from typing import Any, Generator
 
 from rubik.cube import Cube
-from rubik.move import G0, G1, Group, Move, Sequence
+from rubik.move import G0, G1, Group, Move, Sequence, sequence_to_readable
 from rubik.move_table import MoveTable
 from rubik.pruning_table import (
     PruningTable,
@@ -21,11 +21,6 @@ class NoSolutionError(Exception):
         super().__init__(message)
 
 
-# L'idée c'est de pouvoir trouver les successors à l'aide des MoveTable.
-# Exemple:
-#   x' = mt_1[state.x][move]
-#   y' = mt_2[state.y][move]
-#   z' = mt_3[state.z][move]
 @dataclass(slots=True, frozen=True)
 class State:
     x: int
@@ -48,13 +43,18 @@ class State:
         return self.x == 0 and self.y == 0 and self.z == 0
 
     def successors(self, map_: StateMap, group: Group) -> Generator[State, None, None]:
-        for move_index, move in enumerate(group):
-            yield State(
-                map_.xs.table[self.x][move_index],
-                map_.ys.table[self.y][move_index],
-                map_.zs.table[self.z][move_index],
-                move,
+        for move_index, move in enumerate(G0):
+            check = move in group and (
+                self.move is None
+                or (self.move.get_reverse() != move and not self.move.is_opposite(move))
             )
+            if check:
+                yield State(
+                    map_.xs.table[self.x][move_index],
+                    map_.ys.table[self.y][move_index],
+                    map_.zs.table[self.z][move_index],
+                    move,
+                )
 
 
 @dataclass(slots=True, frozen=True)
@@ -78,9 +78,9 @@ class Phase:
         self.pruning_table_1.load()
         self.pruning_table_2.load()
         self.state_map = StateMap(
-            self.pruning_table_1.move_table_1,  # xs
-            self.pruning_table_1.move_table_2,  # ys
-            self.pruning_table_2.move_table_2,  # zs
+            self.pruning_table_1.move_table_1,
+            self.pruning_table_1.move_table_2,
+            self.pruning_table_2.move_table_2,
         )
 
     # Warning: pruning_table_1 and pruning_table_2 MUST have the same move_table_1
@@ -92,6 +92,7 @@ class Phase:
 
     def __search(self, path: deque[State], g: int, bound: int) -> State | None | int:
         current_state = path[-1]
+        path_set = set(path)
         h = self.compute_heuristic(current_state)
         f = g + h
 
@@ -102,9 +103,9 @@ class Phase:
 
         min_ = float("+inf")
         for successor in current_state.successors(self.state_map, self.group):
-            # I can improve that part to speed up the algorithm
-            if not any(n == successor for n in path):
+            if successor not in path_set:
                 path.append(successor)
+                path_set.add(successor)
 
                 t = self.__search(path, g + 1, bound)
                 if isinstance(t, State):
@@ -112,6 +113,7 @@ class Phase:
                 elif isinstance(t, (float, int)) and t < min_:
                     min_ = t
                 path.pop()
+                path_set.remove(successor)
 
         if min_ == float("+inf"):
             return None
@@ -121,20 +123,23 @@ class Phase:
     def run(self, cube: Cube) -> Sequence:
         path: deque[State] = deque()
         state = self.state_map.create_state_from_cube(cube)
+
         bound = self.compute_heuristic(state)
 
         path.append(state)
         while True:
+            print(bound)
             t = self.__search(path, 0, bound)
 
             if t is None:
                 raise NoSolutionError("This cube has no solution.")
-            elif isinstance(t, State) or t is None:
+            elif isinstance(t, State):
                 return [state.move for state in path if state.move is not None]
             else:
                 bound = t
 
 
+# La phase 2 est lente de ouf, peut être que les moves map sont pas ouf
 class Solver:
     def __init__(self) -> None:
         self.phase_1 = Phase(cubies_ori_pruning, edges_ori_UD_slice_perm_pruning, G0)
@@ -144,7 +149,8 @@ class Solver:
 
     def run(self, cube: Cube) -> Sequence:
         sequence_to_G1 = self.phase_1.run(cube)
-        print(sequence_to_G1)
+        print(sequence_to_readable(sequence_to_G1))
+
         cube.apply_sequence(sequence_to_G1)
         sequence_to_solved = self.phase_2.run(cube)
 

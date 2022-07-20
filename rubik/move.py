@@ -187,6 +187,9 @@ class Move:
     def get_reverse(self) -> Move:
         return REVERSE_MOVE_MAP[self]
 
+    def is_opposite(self, move: Move) -> bool:
+        return self.face == OPPOSITE_MOVE_MAP[move.face]
+
 
 MOVE_MAP = OrderedDict(
     {
@@ -215,6 +218,15 @@ REVERSE_MOVE_MAP = OrderedDict(
     {move: Move(move.face, 4 - move.n) for move in MOVE_MAP.values()}
 )
 
+OPPOSITE_MOVE_MAP = {
+    Face.U: Face.D,
+    Face.D: Face.U,
+    Face.R: Face.L,
+    Face.L: Face.R,
+    Face.F: Face.B,
+    Face.B: Face.F,
+}
+
 Sequence = list[Move]
 Group = OrderedSet[Move]
 
@@ -241,6 +253,10 @@ def create_group(group_as_string: str) -> Group:
             for move_as_string in group_as_string.split(" ")
         ]
     )
+
+
+def sequence_to_readable(sequence: Sequence) -> str:
+    return " ".join(str(move) for move in sequence)
 
 
 G0 = create_group(" ".join(move_name for move_name in MOVE_MAP))
