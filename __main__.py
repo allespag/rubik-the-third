@@ -31,7 +31,7 @@ from rubik.solver import Solver
 # PRUNING TABLES
 
 
-def print_cpp_order(to_test: MoveTable | PruningTable):
+def print_mt_cpp_order(to_test: MoveTable) -> None:
     order: list[int] = []
     for i in range(6):
         order.append(i)
@@ -46,13 +46,20 @@ def print_cpp_order(to_test: MoveTable | PruningTable):
         print(f"#{index}: [{res} ]s")
 
 
+def print_pt(to_test: PruningTable) -> None:
+    to_test.populate()
+    to_test.load()
+
+    for elem in to_test.table:
+        print(elem)
+
+
 def main_test() -> None:
-    print_cpp_order(not_UD_slice_perm_move_table)
+    print_pt(corner_cubies_perm_exact_UD_slice_pruning)
 
 
 def main() -> None:
-    sequence = create_random_sequence(1000)
-    # sequence = create_sequence("D2 L' F2 B D D2 U2 F' U' L B2 R2 B F' B' F2 B2 F F2 R")
+    sequence = create_random_sequence(20)
 
     cube = Cube.from_sequence(sequence)
 
@@ -65,4 +72,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main_test()
+    main()

@@ -43,12 +43,12 @@ class State:
         return self.x == 0 and self.y == 0 and self.z == 0
 
     def successors(self, map_: StateMap, group: Group) -> Generator[State, None, None]:
-        for move_index, move in enumerate(G0):
-            check = move in group and (
-                self.move is None
-                or (self.move.get_reverse() != move and not self.move.is_opposite(move))
+        for move in group:
+            check = self.move is None or (
+                self.move.get_reverse() != move and not self.move.is_opposite(move)
             )
             if check:
+                move_index = move.coord
                 yield State(
                     map_.xs.table[self.x][move_index],
                     map_.ys.table[self.y][move_index],

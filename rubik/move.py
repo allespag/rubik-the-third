@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 from ordered_set import OrderedSet
 
+from rubik.constants import FACE_COUNT
 from rubik.cubie import Corner, CornerCubie, Edge, EdgeCubie, Face
 
 IS_REPLACED_BY_EDGE_MAP = {
@@ -189,6 +190,10 @@ class Move:
 
     def is_opposite(self, move: Move) -> bool:
         return self.face == OPPOSITE_MOVE_MAP[move.face]
+
+    @property
+    def coord(self) -> int:
+        return self.face + ((self.n - 1) * FACE_COUNT)
 
 
 MOVE_MAP = OrderedDict(

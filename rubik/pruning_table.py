@@ -5,8 +5,8 @@ from queue import Queue
 
 from alive_progress import alive_bar  # type: ignore
 
-from rubik.constants import MOVE_COUNT
 from rubik.cube import Cube
+from rubik.move import G0, G1, Group
 from rubik.move_table import (
     MoveTable,
     UD_slice_perm_move_table,
@@ -25,6 +25,7 @@ class PruningTable:
     filename: str
     move_table_1: MoveTable
     move_table_2: MoveTable
+    group: Group = G0
     table: list[list[int]] = field(init=False, default_factory=list, repr=False)
     loaded: bool = field(init=False, default=False)
 
@@ -69,7 +70,10 @@ class PruningTable:
                 table[i][j] = depth
                 bar()
 
-                for move_index in range(MOVE_COUNT):
+                # for move_index in range(MOVE_COUNT):
+                for move in self.group:
+                    # ici, move_index ne correspond pas au bon move
+                    move_index = move.coord
                     x = self.move_table_1.table[i][move_index]
                     y = self.move_table_2.table[j][move_index]
 
@@ -103,10 +107,13 @@ corner_cubies_perm_exact_UD_slice_pruning = PruningTable(
     "corner_cubies_permutation_exact_UD_slice_pruning.pickle",
     exact_UD_slice_perm_move_table,
     corners_perm_move_table,
+    group=G1,
 )
+
 
 edges_perm_pruning = PruningTable(
     "edges_permutation.pickle",
     exact_UD_slice_perm_move_table,
     not_UD_slice_perm_move_table,
+    group=G1,
 )
