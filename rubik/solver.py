@@ -5,13 +5,20 @@ from dataclasses import dataclass, field
 from typing import Any, Generator
 
 from rubik.cube import Cube
-from rubik.move import G0, Group, Move, Sequence
+from rubik.move import G0, G1, Group, Move, Sequence
 from rubik.move_table import MoveTable
 from rubik.pruning_table import (
     PruningTable,
+    corner_cubies_perm_exact_UD_slice_pruning,
     cubies_ori_pruning,
     edges_ori_UD_slice_perm_pruning,
+    edges_perm_pruning,
 )
+
+
+class NoSolutionError(Exception):
+    def __init__(self, message: str) -> None:
+        super().__init__(message)
 
 
 # L'idée c'est de pouvoir trouver les successors à l'aide des MoveTable.
@@ -60,23 +67,6 @@ class StateMap:
         return State(self.xs.getter(cube), self.ys.getter(cube), self.zs.getter(cube))
 
 
-# @dataclass(slots=True)
-# class Node:
-#     state: State
-#     g: int = 0
-#     h: int = 0
-#     parent: Node | None = None
-
-#     @property
-#     def f(self) -> int:
-#         return self.g + self.h
-
-#     def is_goal(self) -> bool:
-#         return self.state.is_goal()
-
-#     def successors(self) -> Generator[St]
-
-
 @dataclass(slots=True)
 class Phase:
     pruning_table_1: PruningTable
@@ -100,9 +90,7 @@ class Phase:
             self.pruning_table_2.table[state.x][state.z],
         )
 
-    def __search(
-        self, path: deque[State], g: int, bound: int
-    ) -> State | None | int | float:
+    def __search(self, path: deque[State], g: int, bound: int) -> State | None | int:
         current_state = path[-1]
         h = self.compute_heuristic(current_state)
         f = g + h
@@ -114,6 +102,7 @@ class Phase:
 
         min_ = float("+inf")
         for successor in current_state.successors(self.state_map, self.group):
+            # I can improve that part to speed up the algorithm
             if not any(n == successor for n in path):
                 path.append(successor)
 
@@ -127,9 +116,9 @@ class Phase:
         if min_ == float("+inf"):
             return None
         else:
-            return min_
+            return min_  # type: ignore
 
-    def run(self, cube: Cube) -> None:
+    def run(self, cube: Cube) -> Sequence:
         path: deque[State] = deque()
         state = self.state_map.create_state_from_cube(cube)
         bound = self.compute_heuristic(state)
@@ -138,12 +127,10 @@ class Phase:
         while True:
             t = self.__search(path, 0, bound)
 
-            # Found
-            if isinstance(t, State) or t is None:
-                for elem in path:
-                    print(str(elem.move))
-
-                return
+            if t is None:
+                raise NoSolutionError("This cube has no solution.")
+            elif isinstance(t, State) or t is None:
+                return [state.move for state in path if state.move is not None]
             else:
                 bound = t
 
@@ -151,6 +138,14 @@ class Phase:
 class Solver:
     def __init__(self) -> None:
         self.phase_1 = Phase(cubies_ori_pruning, edges_ori_UD_slice_perm_pruning, G0)
+        self.phase_2 = Phase(
+            corner_cubies_perm_exact_UD_slice_pruning, edges_perm_pruning, G1
+        )
 
     def run(self, cube: Cube) -> Sequence:
-        self.phase_1.run(cube)
+        sequence_to_G1 = self.phase_1.run(cube)
+        print(sequence_to_G1)
+        cube.apply_sequence(sequence_to_G1)
+        sequence_to_solved = self.phase_2.run(cube)
+
+        return sequence_to_G1 + sequence_to_solved

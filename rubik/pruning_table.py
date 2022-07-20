@@ -9,7 +9,10 @@ from rubik.move_table import (
     MoveTable,
     UD_slice_perm_move_table,
     corners_ori_move_table,
+    corners_perm_move_table,
     edges_ori_move_table,
+    exact_UD_slice_perm_move_table,
+    not_UD_slice_perm_move_table,
 )
 
 PRUNING_TABLE_DIRECTORY = "rubik/pruning_tables"
@@ -84,4 +87,16 @@ edges_ori_UD_slice_perm_pruning = PruningTable(
     "edges_orientation_UD_slice_permutation.pickle",
     edges_ori_move_table,
     UD_slice_perm_move_table,
+)
+
+corner_cubies_perm_exact_UD_slice_pruning = PruningTable(
+    "corner_cubies_permutation_exact_UD_slice_pruning.pickle",
+    exact_UD_slice_perm_move_table,
+    corners_perm_move_table,
+)
+
+edges_perm_pruning = PruningTable(
+    "edges_permutation.pickle",
+    exact_UD_slice_perm_move_table,
+    not_UD_slice_perm_move_table,
 )

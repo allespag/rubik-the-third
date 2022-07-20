@@ -5,8 +5,11 @@ from typing import Callable
 
 from rubik.constants import (
     CORNER_ORIENTATION_MAX,
+    CORNER_PERMUTATION_MAX,
     EDGE_ORIENTATION_MAX,
+    EXACT_UD_SLICE_PERMUTATION_MAX,
     MOVE_COUNT,
+    NOT_UD_SLICE_PERMUTATION_MAX,
     UD_SLICE_PERMUTATION_MAX,
 )
 from rubik.cube import Cube
@@ -75,5 +78,26 @@ UD_slice_perm_move_table = MoveTable(
     "UD_slice_permutation.pickle",
     UD_SLICE_PERMUTATION_MAX,
     Cube.get_UD_slice_permutation_coord,
-    Cube.set_edge_cubies_orientation_coord,
+    Cube.set_UD_slice_permutation_coord,
+)
+
+corners_perm_move_table = MoveTable(
+    "corners_permutation.pickle",
+    CORNER_PERMUTATION_MAX,
+    Cube.get_corner_cubies_permutation_coord,
+    Cube.set_corner_cubies_permutation_coord,
+)
+
+exact_UD_slice_perm_move_table = MoveTable(
+    "exact_UD_slice_permutation.pickle",
+    EXACT_UD_SLICE_PERMUTATION_MAX,
+    Cube.get_exact_UD_slice_permuation_coord,
+    Cube.set_exact_UD_slice_permuation_coord,
+)
+
+not_UD_slice_perm_move_table = MoveTable(
+    "not_UD_slice_permutation.pickle",
+    NOT_UD_SLICE_PERMUTATION_MAX,
+    Cube.get_not_UD_slice_permutation_coord,
+    Cube.set_not_UD_slice_permutation_coord,
 )

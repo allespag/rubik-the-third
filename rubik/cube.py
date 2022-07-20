@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 from dataclasses import dataclass, field
+from math import factorial
 
 from rubik.constants import (
     CORNER_COUNT,
@@ -119,6 +120,51 @@ class Cube:
 
         return coord
 
+    def get_corner_cubies_permutation_coord(self) -> int:
+        coord = 0
+
+        for index, cubie in enumerate(self.corner_cubies):
+            higher_corner_count = sum(
+                left_cubie.corner > cubie.corner
+                for left_cubie in self.corner_cubies[:index]
+            )
+            coord += higher_corner_count * factorial(index)
+
+        return coord
+
+    def get_exact_UD_slice_permuation_coord(self) -> int:
+        edges: list[Edge] = []
+        UD_slice_edges = [
+            Edge.FR,
+            Edge.FL,
+            Edge.BL,
+            Edge.BR,
+        ]
+
+        for cubie in self.edge_cubies:
+            if cubie.edge in UD_slice_edges:
+                edges.append(cubie.edge)
+
+        coord = 0
+        for index, edge in reversed(list(enumerate(edges))):
+            if index == 0:
+                break
+            sum_ = sum(left_edge > edge for left_edge in edges[:index])
+            coord = (coord + sum_) * index
+
+        return coord
+
+    def get_not_UD_slice_permutation_coord(self) -> int:
+        coord = 0
+
+        for index, cubie in enumerate(self.edge_cubies[: Edge.DB + 1]):
+            higher_corner_count = sum(
+                left_cubie.edge > cubie.edge for left_cubie in self.edge_cubies[:index]
+            )
+            coord += higher_corner_count * factorial(index)
+
+        return coord
+
     def set_edge_cubies_orientation_coord(self, coord: int) -> None:
         sum_ = 0
 
@@ -187,6 +233,49 @@ class Cube:
 
             self.edge_cubies[n].edge = edge
             n -= 1
+
+    def set_corner_cubies_permutation_coord(self, coord: int) -> None:
+        remaining_corners = list(Corner)
+
+        for index, cubie in reversed(list(enumerate(self.corner_cubies))):
+            higher_corner_count = coord // factorial(index)
+            coord %= factorial(index)
+
+            cubie.corner = remaining_corners[
+                len(remaining_corners) - higher_corner_count - 1
+            ]
+            remaining_corners.remove(cubie.corner)
+
+    def set_exact_UD_slice_permuation_coord(self, coord: int) -> None:
+        remaining_UD_slice_edges = [
+            Edge.FR,
+            Edge.FL,
+            Edge.BL,
+            Edge.BR,
+        ]
+
+        for index, cubie in reversed(
+            list(enumerate(self.edge_cubies[Edge.FR : Edge.BR + 1]))
+        ):
+            higher_edge_count = coord // factorial(index)
+            coord %= factorial(index)
+
+            cubie.edge = remaining_UD_slice_edges[
+                len(remaining_UD_slice_edges) - higher_edge_count - 1
+            ]
+            remaining_UD_slice_edges.remove(cubie.edge)
+
+    def set_not_UD_slice_permutation_coord(self, coord: int) -> None:
+        remaining_corners = list(Edge)[: Edge.DB + 1]
+
+        for index, cubie in reversed(list(enumerate(self.edge_cubies[: Edge.DB + 1]))):
+            higher_corner_count = coord // factorial(index)
+            coord %= factorial(index)
+
+            cubie.edge = remaining_corners[
+                len(remaining_corners) - higher_corner_count - 1
+            ]
+            remaining_corners.remove(cubie.edge)
 
 
 SOLVED_CUBE = Cube()
