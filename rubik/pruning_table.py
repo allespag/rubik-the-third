@@ -1,3 +1,4 @@
+import logging
 import pickle
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -6,18 +7,14 @@ from queue import Queue
 from alive_progress import alive_bar  # type: ignore
 
 from rubik.cube import Cube
-from rubik.move import G0, G1, Group
-from rubik.move_table import (
-    MoveTable,
-    UD_slice_perm_move_table,
-    corners_ori_move_table,
-    corners_perm_move_table,
-    edges_ori_move_table,
-    exact_UD_slice_perm_move_table,
-    not_UD_slice_perm_move_table,
-)
+from rubik.move import G0, Group
+from rubik.move_table import MoveTable
 
 PRUNING_TABLE_DIRECTORY = "rubik/pruning_tables"
+
+logging.basicConfig(format="%(message)s")
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 @dataclass(slots=True)
@@ -42,6 +39,7 @@ class PruningTable:
         if not self.loaded:
             try:
                 with open(self.path, "rb") as f:
+                    logger.info(f"Loading: {self.path}")
                     self.table = pickle.load(f)
                 self.loaded = True
             except:
@@ -70,9 +68,7 @@ class PruningTable:
                 table[i][j] = depth
                 bar()
 
-                # for move_index in range(MOVE_COUNT):
                 for move in self.group:
-                    # ici, move_index ne correspond pas au bon move
                     move_index = move.coord
                     x = self.move_table_1.table[i][move_index]
                     y = self.move_table_2.table[j][move_index]
@@ -89,31 +85,3 @@ class PruningTable:
         y = self.move_table_2.getter(cube)
 
         return self.table[x][y]
-
-
-cubies_ori_pruning = PruningTable(
-    "cubies_orientation.pickle",
-    edges_ori_move_table,
-    corners_ori_move_table,
-)
-
-edges_ori_UD_slice_perm_pruning = PruningTable(
-    "edges_orientation_UD_slice_permutation.pickle",
-    edges_ori_move_table,
-    UD_slice_perm_move_table,
-)
-
-corner_cubies_perm_exact_UD_slice_pruning = PruningTable(
-    "corner_cubies_permutation_exact_UD_slice_pruning.pickle",
-    exact_UD_slice_perm_move_table,
-    corners_perm_move_table,
-    group=G1,
-)
-
-
-edges_perm_pruning = PruningTable(
-    "edges_permutation.pickle",
-    exact_UD_slice_perm_move_table,
-    not_UD_slice_perm_move_table,
-    group=G1,
-)

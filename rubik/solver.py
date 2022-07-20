@@ -1,19 +1,40 @@
 from __future__ import annotations
 
+import logging
+import time
 from collections import deque
 from dataclasses import dataclass, field
-from typing import Any, Generator
+from typing import Any, Callable, Generator
 
-from rubik.cube import Cube
-from rubik.move import G0, G1, Group, Move, Sequence, sequence_to_readable
-from rubik.move_table import MoveTable
-from rubik.pruning_table import (
-    PruningTable,
-    corner_cubies_perm_exact_UD_slice_pruning,
-    cubies_ori_pruning,
-    edges_ori_UD_slice_perm_pruning,
-    edges_perm_pruning,
+from rubik.constants import (
+    CORNER_ORIENTATION_MAX,
+    CORNER_PERMUTATION_MAX,
+    EDGE_ORIENTATION_MAX,
+    EXACT_UD_SLICE_PERMUTATION_MAX,
+    NOT_UD_SLICE_PERMUTATION_MAX,
+    UD_SLICE_PERMUTATION_MAX,
 )
+from rubik.cube import Cube
+from rubik.move import G0, G1, Group, Move, Sequence
+from rubik.move_table import MoveTable
+from rubik.pruning_table import PruningTable
+
+logging.basicConfig(format="%(message)s")
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+
+def timer(func: Callable[..., Any]) -> Callable[..., Any]:
+    def wrap(*args: Any, **kwargs: Any) -> Any:
+        t1 = time.time()
+        result = func(*args, **kwargs)
+        t2 = time.time()
+
+        logger.info(f"Solved in {(t2 - t1):.2f}s")
+
+        return result
+
+    return wrap
 
 
 class NoSolutionError(Exception):
@@ -112,6 +133,7 @@ class Phase:
                     return current_state
                 elif isinstance(t, (float, int)) and t < min_:
                     min_ = t
+
                 path.pop()
                 path_set.remove(successor)
 
@@ -128,7 +150,6 @@ class Phase:
 
         path.append(state)
         while True:
-            print(bound)
             t = self.__search(path, 0, bound)
 
             if t is None:
@@ -139,18 +160,83 @@ class Phase:
                 bound = t
 
 
-# La phase 2 est lente de ouf, peut être que les moves map sont pas ouf
 class Solver:
     def __init__(self) -> None:
+        edges_ori_move_table = MoveTable(
+            "edges_orientation.pickle",
+            EDGE_ORIENTATION_MAX,
+            Cube.get_edge_cubies_orientation_coord,
+            Cube.set_edge_cubies_orientation_coord,
+        )
+
+        corners_ori_move_table = MoveTable(
+            "corners_orientation.pickle",
+            CORNER_ORIENTATION_MAX,
+            Cube.get_corner_cubies_orientation_coord,
+            Cube.set_corner_cubies_orientation_coord,
+        )
+
+        UD_slice_perm_move_table = MoveTable(
+            "UD_slice_permutation.pickle",
+            UD_SLICE_PERMUTATION_MAX,
+            Cube.get_UD_slice_permutation_coord,
+            Cube.set_UD_slice_permutation_coord,
+        )
+
+        corners_perm_move_table = MoveTable(
+            "corners_permutation.pickle",
+            CORNER_PERMUTATION_MAX,
+            Cube.get_corner_cubies_permutation_coord,
+            Cube.set_corner_cubies_permutation_coord,
+        )
+
+        exact_UD_slice_perm_move_table = MoveTable(
+            "exact_UD_slice_permutation.pickle",
+            EXACT_UD_SLICE_PERMUTATION_MAX,
+            Cube.get_exact_UD_slice_permuation_coord,
+            Cube.set_exact_UD_slice_permuation_coord,
+        )
+
+        not_UD_slice_perm_move_table = MoveTable(
+            "not_UD_slice_permutation.pickle",
+            NOT_UD_SLICE_PERMUTATION_MAX,
+            Cube.get_not_UD_slice_permutation_coord,
+            Cube.set_not_UD_slice_permutation_coord,
+        )
+        cubies_ori_pruning = PruningTable(
+            "cubies_orientation.pickle",
+            edges_ori_move_table,
+            corners_ori_move_table,
+        )
+
+        edges_ori_UD_slice_perm_pruning = PruningTable(
+            "edges_orientation_UD_slice_permutation.pickle",
+            edges_ori_move_table,
+            UD_slice_perm_move_table,
+        )
+
+        corner_cubies_perm_exact_UD_slice_pruning = PruningTable(
+            "corner_cubies_permutation_exact_UD_slice_pruning.pickle",
+            exact_UD_slice_perm_move_table,
+            corners_perm_move_table,
+            group=G1,
+        )
+
+        edges_perm_pruning = PruningTable(
+            "edges_permutation.pickle",
+            exact_UD_slice_perm_move_table,
+            not_UD_slice_perm_move_table,
+            group=G1,
+        )
+
         self.phase_1 = Phase(cubies_ori_pruning, edges_ori_UD_slice_perm_pruning, G0)
         self.phase_2 = Phase(
             corner_cubies_perm_exact_UD_slice_pruning, edges_perm_pruning, G1
         )
 
+    @timer
     def run(self, cube: Cube) -> Sequence:
         sequence_to_G1 = self.phase_1.run(cube)
-        print(sequence_to_readable(sequence_to_G1))
-
         cube.apply_sequence(sequence_to_G1)
         sequence_to_solved = self.phase_2.run(cube)
 

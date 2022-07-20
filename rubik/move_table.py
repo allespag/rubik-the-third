@@ -1,3 +1,4 @@
+import logging
 import pickle
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -5,19 +6,15 @@ from typing import Callable
 
 from alive_progress import alive_bar  # type: ignore
 
-from rubik.constants import (
-    CORNER_ORIENTATION_MAX,
-    CORNER_PERMUTATION_MAX,
-    EDGE_ORIENTATION_MAX,
-    EXACT_UD_SLICE_PERMUTATION_MAX,
-    MOVE_COUNT,
-    NOT_UD_SLICE_PERMUTATION_MAX,
-    UD_SLICE_PERMUTATION_MAX,
-)
+from rubik.constants import MOVE_COUNT
 from rubik.cube import Cube
 from rubik.move import MOVE_MAP
 
 MOVE_TABLE_DIRECTORY = "rubik/move_tables"
+
+logging.basicConfig(format="%(message)s")
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 @dataclass(slots=True)
@@ -40,6 +37,7 @@ class MoveTable:
         if not self.loaded:
             try:
                 with open(self.path, "rb") as f:
+                    logger.info(f"Loading: {self.path}")
                     self.table = pickle.load(f)
                 self.loaded = True
             except:
@@ -68,46 +66,3 @@ class MoveTable:
 
         with open(self.path, "wb") as f:
             pickle.dump(table, f)
-
-
-edges_ori_move_table = MoveTable(
-    "edges_orientation.pickle",
-    EDGE_ORIENTATION_MAX,
-    Cube.get_edge_cubies_orientation_coord,
-    Cube.set_edge_cubies_orientation_coord,
-)
-
-corners_ori_move_table = MoveTable(
-    "corners_orientation.pickle",
-    CORNER_ORIENTATION_MAX,
-    Cube.get_corner_cubies_orientation_coord,
-    Cube.set_corner_cubies_orientation_coord,
-)
-
-UD_slice_perm_move_table = MoveTable(
-    "UD_slice_permutation.pickle",
-    UD_SLICE_PERMUTATION_MAX,
-    Cube.get_UD_slice_permutation_coord,
-    Cube.set_UD_slice_permutation_coord,
-)
-
-corners_perm_move_table = MoveTable(
-    "corners_permutation.pickle",
-    CORNER_PERMUTATION_MAX,
-    Cube.get_corner_cubies_permutation_coord,
-    Cube.set_corner_cubies_permutation_coord,
-)
-
-exact_UD_slice_perm_move_table = MoveTable(
-    "exact_UD_slice_permutation.pickle",
-    EXACT_UD_SLICE_PERMUTATION_MAX,
-    Cube.get_exact_UD_slice_permuation_coord,
-    Cube.set_exact_UD_slice_permuation_coord,
-)
-
-not_UD_slice_perm_move_table = MoveTable(
-    "not_UD_slice_permutation.pickle",
-    NOT_UD_SLICE_PERMUTATION_MAX,
-    Cube.get_not_UD_slice_permutation_coord,
-    Cube.set_not_UD_slice_permutation_coord,
-)
