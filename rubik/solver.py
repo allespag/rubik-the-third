@@ -111,7 +111,7 @@ class Phase:
             self.pruning_table_2.table[state.x][state.z],
         )
 
-    def __search(self, path: deque[State], g: int, bound: int) -> State | None | int:
+    def __search(self, path: deque[State], g: int, bound: int) -> int | float:
         current_state = path[-1]
         path_set = set(path)
         h = self.compute_heuristic(current_state)
@@ -120,7 +120,7 @@ class Phase:
         if f > bound:
             return f
         elif current_state.is_goal():
-            return current_state
+            return 0
 
         min_ = float("+inf")
         for successor in current_state.successors(self.state_map, self.group):
@@ -129,32 +129,29 @@ class Phase:
                 path_set.add(successor)
 
                 t = self.__search(path, g + 1, bound)
-                if isinstance(t, State):
-                    return current_state
-                elif isinstance(t, (float, int)) and t < min_:
+                if t == 0:
+                    return 0
+                elif t < min_:
                     min_ = t
 
                 path.pop()
                 path_set.remove(successor)
 
-        if min_ == float("+inf"):
-            return None
-        else:
-            return min_  # type: ignore
+        return min_
 
     def run(self, cube: Cube) -> Sequence:
         path: deque[State] = deque()
         state = self.state_map.create_state_from_cube(cube)
 
         bound = self.compute_heuristic(state)
-
         path.append(state)
-        while True:
-            t = self.__search(path, 0, bound)
 
-            if t is None:
+        while True:
+            t = self.__search(path, 0, bound)  # type: ignore
+
+            if t == float("+inf"):
                 raise NoSolutionError("This cube has no solution.")
-            elif isinstance(t, State):
+            elif t == 0:
                 return [state.move for state in path if state.move is not None]
             else:
                 bound = t
