@@ -65,8 +65,13 @@ class State:
 
     def successors(self, map_: StateMap, group: Group) -> Generator[State, None, None]:
         for move in group:
+            # check = self.move is None or (
+            #     self.move != move
+            #     and self.move.get_reverse() != move
+            #     and not self.move.is_opposite(move)
+            # )
             check = self.move is None or (
-                self.move.get_reverse() != move and not self.move.is_opposite(move)
+                self.move.face != move.face and not self.move.is_opposite(move)
             )
             if check:
                 move_index = move.coord
@@ -111,6 +116,7 @@ class Phase:
             self.pruning_table_2.table[state.x][state.z],
         )
 
+    # a way to optimise this is to use a dict as queue (which seems weird) so we can remove the path_set
     def __search(self, path: deque[State], g: int, bound: int) -> int | float:
         current_state = path[-1]
         path_set = set(path)
@@ -139,11 +145,13 @@ class Phase:
 
         return min_
 
-    def run(self, cube: Cube) -> Sequence:
+    def run(self, cube: Cube, bound: int | None = None) -> Sequence:
         path: deque[State] = deque()
         state = self.state_map.create_state_from_cube(cube)
 
-        bound = self.compute_heuristic(state)
+        if bound is None:
+            bound = self.compute_heuristic(state)
+
         path.append(state)
 
         while True:

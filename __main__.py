@@ -12,8 +12,20 @@ if __CHECK_PERF:
 # this sequence takes 11.47s -> 4.75s (dunno why) -> 4.61s
 # sequence = create_sequence("F L D2 F2 R2 B2 F R B L2 B F L2 B2 D'")
 
-# this sequence takes 17.07s -> 16.53s
-#  F B' F F2 F2 L' L2 L R2 L2 U U' R2 L2 F' F2 L' R' B2 B' R R2 F' B2 F' F U' F D2 U D2 L2 F2 L R2 L2 B2 U U2 L L' B F2 F2 D2 U2 R2 B' L F R2 L R2 U2 U2 L' D2 B U' F U2 F' D2 U2 U' D2 F2 L R2 R2 L D2 D F D' F2 B2 D F L' U B' L F B2 L2 D' L' U' F2 B' F' D2 B2 F' B F' U U' U
+# this sequence takes 17.07s -> 16.53s -> 5.19s
+# F B' F F2 F2 L' L2 L R2 L2 U U' R2 L2 F' F2 L' R' B2 B' R R2 F' B2 F' F U' F D2 U D2 L2 F2 L R2 L2 B2 U U2 L L' B F2 F2 D2 U2 R2 B' L F R2 L R2 U2 U2 L' D2 B U' F U2 F' D2 U2 U' D2 F2 L R2 R2 L D2 D F D' F2 B2 D F L' U B' L F B2 L2 D' L' U' F2 B' F' D2 B2 F' B F' U U' U
+
+
+def check_is_solved() -> None:
+    scramble = create_sequence(
+        "R2 R L2 U' R' F' L L L' B' U R2 F' F' F' R2 R R B2 F2 U F' R2 B F L2 U D U2 R2 U R2 U2 U D R2 F U' B2 R R R'"
+    )
+    solution = create_sequence(
+        "L2 B2 U L' B' L B D B R U' R2 F2 R2 D' R2 D2 L2 U R2 B2 U2 F2 D"
+    )
+
+    cube = Cube.from_sequence(scramble + solution)
+    print(cube.solved)
 
 
 def main(args: argparse.Namespace) -> None:
@@ -52,3 +64,4 @@ def get_args() -> argparse.Namespace:
 if __name__ == "__main__":
     args = get_args()
     main(args)
+    # check_is_solved()

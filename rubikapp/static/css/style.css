@@ -1,0 +1,28 @@
+body {
+    padding: 00;
+    margin: 00;
+    overflow: hidden;
+    position: fixed;
+}
+
+.slider {
+    -webkit-appearance: none;
+    background-color: #8CC0DE;
+    height: 5px;
+}
+
+button {
+    background-color: #8CC0DE;
+    color: white;
+    border: none;
+    width: 105px;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+}
+
+button:active {
+    transform: matrix(0.95, 0, 0, 0.95, 0, 0);
+}
