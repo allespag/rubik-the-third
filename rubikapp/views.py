@@ -7,16 +7,15 @@ from rubikapp import app
 
 solver = Solver()
 
-# https://javascript.tutorialink.com/how-i-can-send-data-from-flask-to-javascript/
-
 
 @app.route("/", methods=["GET", "POST"])
 def index() -> str:
     solution = None
 
     if request.method == "POST":
-        sequence_as_string = " ".join(elem for elem in request.get_json()["sequence"])
-        sequence = create_sequence(sequence_as_string)
+        print(request.get_json()["sequence"])
+        sequence = create_sequence(request.get_json()["sequence"])
+        print(sequence)
         cube = Cube.from_sequence(sequence)
 
         solution = solver.run(cube)
