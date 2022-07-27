@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 import logging
-import time
 from collections import deque
 from dataclasses import dataclass, field
-from typing import Any, Callable, Generator
+from typing import Any, Generator
 
 from rubik.constants import (
     CORNER_ORIENTATION_MAX,
@@ -18,23 +17,11 @@ from rubik.cube import Cube
 from rubik.move import G0, G1, Group, Move, Sequence
 from rubik.move_table import MoveTable
 from rubik.pruning_table import PruningTable
+from rubik.report import Report, ReportManager
 
 logging.basicConfig(format="%(message)s")
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
-
-
-def timer(func: Callable[..., Any]) -> Callable[..., Any]:
-    def wrap(*args: Any, **kwargs: Any) -> Any:
-        t1 = time.time()
-        result = func(*args, **kwargs)
-        t2 = time.time()
-
-        logger.info(f"Solved in {(t2 - t1):.2f}s")
-
-        return result
-
-    return wrap
 
 
 class NoSolutionError(Exception):
@@ -65,11 +52,6 @@ class State:
 
     def successors(self, map_: StateMap, group: Group) -> Generator[State, None, None]:
         for move in group:
-            # check = self.move is None or (
-            #     self.move != move
-            #     and self.move.get_reverse() != move
-            #     and not self.move.is_opposite(move)
-            # )
             check = self.move is None or (
                 self.move.face != move.face and not self.move.is_opposite(move)
             )
@@ -162,11 +144,11 @@ class Phase:
             elif t == 0:
                 return [state.move for state in path if state.move is not None]
             else:
-                bound = t
+                bound = t  # type: ignore
 
 
 class Solver:
-    def __init__(self) -> None:
+    def __init__(self, cube: Cube, report: Report) -> None:
         edges_ori_move_table = MoveTable(
             "edges_orientation.pickle",
             EDGE_ORIENTATION_MAX,
@@ -238,11 +220,14 @@ class Solver:
         self.phase_2 = Phase(
             corner_cubies_perm_exact_UD_slice_pruning, edges_perm_pruning, G1
         )
+        self.cube = cube
+        self.report = report
 
-    @timer
-    def run(self, cube: Cube) -> Sequence:
-        sequence_to_G1 = self.phase_1.run(cube)
-        cube.apply_sequence(sequence_to_G1)
-        sequence_to_solved = self.phase_2.run(cube)
+    @ReportManager.time
+    @ReportManager.as_result(len)
+    def run(self) -> Sequence:
+        sequence_to_G1 = self.phase_1.run(self.cube)
+        self.cube.apply_sequence(sequence_to_G1)
+        sequence_to_solved = self.phase_2.run(self.cube)
 
         return sequence_to_G1 + sequence_to_solved

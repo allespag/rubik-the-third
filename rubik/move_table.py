@@ -12,9 +12,9 @@ from rubik.move import MOVE_MAP
 
 MOVE_TABLE_DIRECTORY = "rubik/move_tables"
 
-logging.basicConfig(format="%(message)s")
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+# logging.basicConfig(format="%(message)s")
+logger = logging.getLogger("rubik")
+# logger.setLevel(logging.INFO)
 
 
 @dataclass(slots=True)
@@ -52,7 +52,7 @@ class MoveTable:
             self.size,
             title=self.filename,
             title_length=30,
-            spinner="wait3",
+            spinner="wait",
             spinner_length=25,
         ) as bar:  # type: ignore
             for i in range(self.size):

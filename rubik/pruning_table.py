@@ -12,9 +12,7 @@ from rubik.move_table import MoveTable
 
 PRUNING_TABLE_DIRECTORY = "rubik/pruning_tables"
 
-logging.basicConfig(format="%(message)s")
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger = logging.getLogger("rubik")
 
 
 @dataclass(slots=True)

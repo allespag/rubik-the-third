@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import copy
 from dataclasses import dataclass, field
 from math import factorial
 
@@ -42,29 +41,6 @@ class Cube:
             self.edge_cubies == SOLVED_CUBE.edge_cubies
             and self.corner_cubies == SOLVED_CUBE.corner_cubies
         )
-
-    # This is the old apply function, remove it when you want
-    def apply_slow__OLD(self, move: Move) -> None:
-        new_edge_cubies = IS_REPLACED_BY_EDGE_MAP[move.face]
-        new_corner_cubies = IS_REPLACED_BY_CORNER_MAP[move.face]
-
-        for _ in range(move.n):
-            edge_cubies_temp = copy.deepcopy(self.edge_cubies)
-            for index, edge_cubie in enumerate(new_edge_cubies):
-                cubie = edge_cubies_temp[edge_cubie.edge]
-
-                self.edge_cubies[index].edge = cubie.edge
-                self.edge_cubies[index].orientation = (
-                    cubie.orientation + edge_cubie.orientation
-                ) % EDGE_ORIENTATION_COUNT
-
-            corner_cubies_temp = copy.deepcopy(self.corner_cubies)
-            for index, corner_cubie in enumerate(new_corner_cubies):
-                cubie = corner_cubies_temp[corner_cubie.corner]
-                self.corner_cubies[index].corner = cubie.corner
-                self.corner_cubies[index].orientation = (
-                    cubie.orientation + corner_cubie.orientation
-                ) % CORNER_ORIENTATION_COUNT
 
     def apply(self, move: Move) -> None:
         for _ in range(move.n):
