@@ -9,6 +9,7 @@ class Report:
     author: str
     start: int | None = field(init=False, default=None)
     end: int | None = field(init=False, default=None)
+    raw_result: Any | None = field(init=False, default=None)
     result: Any | None = field(init=False, default=None)
 
     def __str__(self) -> str:
@@ -59,6 +60,7 @@ class ReportManager:
                 if not result is None or if_failed:
                     try:
                         instance.report.result = modifier(result)
+                        instance.report.raw_result = result
                     except Exception:
                         instance.report.result = default
                 return result

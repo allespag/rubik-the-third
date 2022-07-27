@@ -46,7 +46,7 @@ def get_args() -> argparse.Namespace:
 
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("sequence", nargs="?")
-    group.add_argument("--random", type=int)
+    group.add_argument("--random", "-r", type=int)
 
     args = parser.parse_args()
     return args
