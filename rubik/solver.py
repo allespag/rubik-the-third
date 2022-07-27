@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import logging
 from collections import deque
 from dataclasses import dataclass, field
 from typing import Any, Generator
@@ -18,10 +17,6 @@ from rubik.move import G0, G1, Group, Move, Sequence
 from rubik.move_table import MoveTable
 from rubik.pruning_table import PruningTable
 from rubik.report import Report, ReportManager
-
-logging.basicConfig(format="%(message)s")
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 
 class NoSolutionError(Exception):
