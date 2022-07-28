@@ -10,14 +10,15 @@ from rubik.report import Report
 from rubik.solver import Solver
 
 logger = logging.getLogger("rubik")
-logger.disabled = True
+logger.disabled = False
 
-BENCHMARK_SIZE = 100
+BENCHMARK_SIZE = 1000
 
 
 def main() -> None:
     random.seed(42)
     reports: list[Report] = []
+    solutions: list[tuple[float, str]] = []
 
     with alive_bar(BENCHMARK_SIZE, title="Benchmark", spinner="wait3", spinner_length=25) as bar:  # type: ignore
         for _ in range(BENCHMARK_SIZE):
@@ -29,6 +30,7 @@ def main() -> None:
 
             solver.run()
             reports.append(report)
+            solutions.append((report.time_taken_in_s, report.author))
             bar()
 
     df = pd.DataFrame(
@@ -50,6 +52,7 @@ def main() -> None:
     )
 
     print(df.describe())
+    print(max(solutions, key=lambda x: x[0]))
 
 
 if __name__ == "__main__":

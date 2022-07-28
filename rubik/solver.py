@@ -47,10 +47,9 @@ class State:
 
     def successors(self, map_: StateMap, group: Group) -> Generator[State, None, None]:
         for move in group:
-            check = self.move is None or (
+            if self.move is None or (
                 self.move.face != move.face and not self.move.is_opposite(move)
-            )
-            if check:
+            ):
                 move_index = move.coord
                 yield State(
                     map_.xs.table[self.x][move_index],
@@ -88,15 +87,17 @@ class Phase:
 
     # Warning: pruning_table_1 and pruning_table_2 MUST have the same move_table_1
     def compute_heuristic(self, state: State) -> int:
-        return max(
-            self.pruning_table_1.table[state.x][state.y],
-            self.pruning_table_2.table[state.x][state.z],
-        )
+        a = self.pruning_table_1.table[state.x][state.y]
+        b = self.pruning_table_2.table[state.x][state.z]
+
+        if a > b:
+            return a
+        else:
+            return b
 
     # a way to optimise this is to use a dict as queue (which seems weird) so we can remove the path_set
     def __search(self, path: deque[State], g: int, bound: int) -> int | float:
         current_state = path[-1]
-        path_set = set(path)
         h = self.compute_heuristic(current_state)
         f = g + h
 
@@ -107,18 +108,15 @@ class Phase:
 
         min_ = float("+inf")
         for successor in current_state.successors(self.state_map, self.group):
-            if successor not in path_set:
-                path.append(successor)
-                path_set.add(successor)
+            path.append(successor)
 
-                t = self.__search(path, g + 1, bound)
-                if t == 0:
-                    return 0
-                elif t < min_:
-                    min_ = t
+            t = self.__search(path, g + 1, bound)
+            if t == 0:
+                return 0
+            elif t < min_:
+                min_ = t
 
-                path.pop()
-                path_set.remove(successor)
+            path.pop()
 
         return min_
 
