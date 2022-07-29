@@ -95,7 +95,6 @@ class Phase:
         else:
             return b
 
-    # a way to optimise this is to use a dict as queue (which seems weird) so we can remove the path_set
     def __search(self, path: deque[State], g: int, bound: int) -> int | float:
         current_state = path[-1]
         h = self.compute_heuristic(current_state)
@@ -107,7 +106,12 @@ class Phase:
             return 0
 
         min_ = float("+inf")
-        for successor in current_state.successors(self.state_map, self.group):
+        successors = list(current_state.successors(self.state_map, self.group))
+        successors.sort(
+            key=lambda successor: self.compute_heuristic(successor) + g + 1,
+        )
+        # for successor in current_state.successors(self.state_map, self.group):
+        for successor in successors:
             path.append(successor)
 
             t = self.__search(path, g + 1, bound)
@@ -129,7 +133,8 @@ class Phase:
 
         path.append(state)
 
-        while True:
+        while 1:
+            # print(bound)
             t = self.__search(path, 0, bound)  # type: ignore
 
             if t == float("+inf"):
@@ -138,6 +143,8 @@ class Phase:
                 return [state.move for state in path if state.move is not None]
             else:
                 bound = t  # type: ignore
+
+        return []
 
 
 class Solver:
@@ -220,7 +227,10 @@ class Solver:
     @ReportManager.as_result(len)
     def run(self) -> Sequence:
         sequence_to_G1 = self.phase_1.run(self.cube)
+        # print(sequence_to_G1)
+
         self.cube.apply_sequence(sequence_to_G1)
         sequence_to_solved = self.phase_2.run(self.cube)
+        # print(sequence_to_solved)
 
         return sequence_to_G1 + sequence_to_solved
