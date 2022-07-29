@@ -24,7 +24,7 @@ class NoSolutionError(Exception):
         super().__init__(message)
 
 
-@dataclass(slots=True, frozen=True)
+@dataclass(slots=True)
 class State:
     x: int
     y: int
@@ -59,7 +59,7 @@ class State:
                 )
 
 
-@dataclass(slots=True, frozen=True)
+@dataclass(slots=True)
 class StateMap:
     xs: MoveTable
     ys: MoveTable
@@ -106,11 +106,12 @@ class Phase:
             return 0
 
         min_ = float("+inf")
+
         successors = list(current_state.successors(self.state_map, self.group))
         successors.sort(
             key=lambda successor: self.compute_heuristic(successor) + g + 1,
         )
-        # for successor in current_state.successors(self.state_map, self.group):
+
         for successor in successors:
             path.append(successor)
 

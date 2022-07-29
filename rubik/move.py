@@ -165,7 +165,7 @@ class NotAMoveError(Exception):
         super().__init__(message)
 
 
-@dataclass(slots=True, frozen=True)
+@dataclass(slots=True)
 class Move:
     face: Face
     n: int
@@ -173,6 +173,9 @@ class Move:
     def __str__(self) -> str:
         modifiers = ["", "2", "'"]
         return f"{self.face.name}{modifiers[self.n - 1]}"
+
+    def __hash__(self) -> int:
+        return (self.face, self.n).__hash__()
 
     @classmethod
     def from_string(cls, move_as_string: str) -> Move:
