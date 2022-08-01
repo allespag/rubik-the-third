@@ -51,13 +51,12 @@ def main(args: argparse.Namespace) -> None:
     )
 
     print(df.describe())
-    print(max(solutions, key=lambda x: x[0]))  #  TODO: remove this
 
 
 def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(prog="benchmark")
 
-    parser.add_argument("--iter", "-i", type=int, default=100)
+    parser.add_argument("--iter", "-i", type=int, default=42)
     parser.add_argument("--length", "-l", type=int, default=42)
     parser.add_argument("--seed", "-s", default=42)
 
