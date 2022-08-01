@@ -1,5 +1,6 @@
 import argparse
 import cProfile
+import logging
 import pstats
 import sys
 
@@ -13,13 +14,12 @@ from rubik.move import (
 from rubik.report import Report
 from rubik.solver import Solver
 
-# plus lent avec benchmark -> n = 1000 ; seed = 42
-# 5.15s (from benchmark)
-# 4.04s (by removing all frozen=True)
-# L' F' B' R2 D' F R L2 U2 L B2 R R' D' F' D B' L2 U2 U' U D D' D2 R2 U F2 R B B2 U' R R D2 D U2 D R' U' D' F' B2
+logger = logging.getLogger("rubik")
 
 
 def main(args: argparse.Namespace) -> None:
+    logger.disabled = args.quiet
+
     try:
         if args.sequence:
             sequence = create_sequence(args.sequence)
@@ -55,7 +55,8 @@ def get_args() -> argparse.Namespace:
     group.add_argument("sequence", nargs="?")
     group.add_argument("--random", "-r", type=int)
 
-    parser.add_argument("--perf", "-p", action="store_true", default=False)
+    parser.add_argument("--perf", "-p", action="store_true")
+    parser.add_argument("--quiet", "-q", action="store_true")
 
     args = parser.parse_args()
     return args

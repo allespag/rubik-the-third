@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from collections import deque
 from dataclasses import dataclass, field
 from typing import Any, Generator
@@ -13,10 +14,12 @@ from rubik.constants import (
     UD_SLICE_PERMUTATION_MAX,
 )
 from rubik.cube import Cube
-from rubik.move import G0, G1, Group, Move, Sequence
+from rubik.move import G0, G1, Group, Move, Sequence, sequence_to_readable
 from rubik.move_table import MoveTable
 from rubik.pruning_table import PruningTable
 from rubik.report import Report, ReportManager
+
+logger = logging.getLogger("rubik")
 
 
 class NoSolutionError(Exception):
@@ -85,7 +88,6 @@ class Phase:
             self.pruning_table_2.move_table_2,
         )
 
-    # Warning: pruning_table_1 and pruning_table_2 MUST have the same move_table_1
     def compute_heuristic(self, state: State) -> int:
         a = self.pruning_table_1.table[state.x][state.y]
         b = self.pruning_table_2.table[state.x][state.z]
@@ -135,7 +137,6 @@ class Phase:
         path.append(state)
 
         while 1:
-            # print(bound)
             t = self.__search(path, 0, bound)  # type: ignore
 
             if t == float("+inf"):
@@ -227,11 +228,13 @@ class Solver:
     @ReportManager.time
     @ReportManager.as_result(len)
     def run(self) -> Sequence:
+        logger.info("\nReaching G1 with <U, D, L, R, F, B> ...")
         sequence_to_G1 = self.phase_1.run(self.cube)
-        # print(sequence_to_G1)
+        logger.info(f"Sequence to G1: {sequence_to_readable(sequence_to_G1)}\n")
 
         self.cube.apply_sequence(sequence_to_G1)
-        sequence_to_solved = self.phase_2.run(self.cube)
-        # print(sequence_to_solved)
+        logger.info("\nReaching G2 with <U, D, L2, R2, F2, B2> ...")
+        sequence_to_G2 = self.phase_2.run(self.cube)
+        logger.info(f"Sequence to G2: {sequence_to_readable(sequence_to_G2)}\n")
 
-        return sequence_to_G1 + sequence_to_solved
+        return sequence_to_G1 + sequence_to_G2
