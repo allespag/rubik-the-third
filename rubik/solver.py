@@ -233,7 +233,7 @@ class Solver:
         logger.info(f"Sequence to G1: {sequence_to_readable(sequence_to_G1)}\n")
 
         self.cube.apply_sequence(sequence_to_G1)
-        logger.info("\nReaching G2 with <U, D, L2, R2, F2, B2> ...")
+        logger.info("Reaching G2 with <U, D, L2, R2, F2, B2> ...")
         sequence_to_G2 = self.phase_2.run(self.cube)
         logger.info(f"Sequence to G2: {sequence_to_readable(sequence_to_G2)}\n")
 
